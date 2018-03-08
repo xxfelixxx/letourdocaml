@@ -94,6 +94,11 @@ let ( *** ) x y = ( x ** y ) ** y
    the function to that value *)
 let (|>) x f = f x
 
+(* declaring functions with keyword 'function' have automatic matching *)
+let some_or_zero = function
+  | Some x -> x
+  | None -> 0
+
 (* test everything and print it all out *)
 let () =
   printf "--- variables.ml ---\n";
@@ -127,8 +132,12 @@ let () =
   printf "The vector sum of (1,2) and (3,4) is (%s)\n"
     (join_comma_duple res);
   printf "The powerup of 2 and 3 is %F\n" (( *** ) 2. 3. );
+
   printf "Here are some paths:\n";
   let path = "/usr/bin:/usr/local/bin:/bin/sbin" in
   String.split ~on:':' path
   |> List.dedup_and_sort ~compare:String.compare
-  |> List.iter ~f:(fun x -> printf "--> %s\n" x)
+  |> List.iter ~f:(fun x -> printf "--> %s\n" x);
+
+  printf "Some_or_zero of ( Some 4 ) is %d\n" (some_or_zero (Some 4));
+  printf "Some_or_zero of ( None   ) is %d\n" (some_or_zero None);
