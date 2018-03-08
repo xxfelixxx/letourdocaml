@@ -90,6 +90,10 @@ let join_comma_duple (x,y) =
 (* new fancy power-up operator...note that spaces are required around *** *)
 let ( *** ) x y = ( x ** y ) ** y
 
+(* pipe operator of a value and a function is the result of applying
+   the function to that value *)
+let (|>) x f = f x
+
 (* test everything and print it all out *)
 let () =
   printf "--- variables.ml ---\n";
@@ -123,3 +127,8 @@ let () =
   printf "The vector sum of (1,2) and (3,4) is (%s)\n"
     (join_comma_duple res);
   printf "The powerup of 2 and 3 is %F\n" (( *** ) 2. 3. );
+  printf "Here are some paths:\n";
+  let path = "/usr/bin:/usr/local/bin:/bin/sbin" in
+  String.split ~on:':' path
+  |> List.dedup_and_sort ~compare:String.compare
+  |> List.iter ~f:(fun x -> printf "--> %s\n" x)
