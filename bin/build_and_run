@@ -22,8 +22,13 @@ error() {
 
 NAME="$1"
 if [[ -z "$NAME" ]]; then
-    error "pass in a name"
-    exit 1
+    MAYBE_NAME=$(ls -f1 $PWD | grep -e '\.ml$' | sed -e 's/\.ml$//')
+    if [[ -z "$MAYBE_NAME" ]]; then
+        error "pass in a name"
+        exit 1
+    fi
+    NAME="$MAYBE_NAME"
+    header $NAME
 elif [[ -f "$NAME" ]]; then
     NAME=$(echo "$NAME" | sed -e 's/\.ml$//;')
     header "Found $NAME.ml"
