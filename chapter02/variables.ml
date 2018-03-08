@@ -63,6 +63,19 @@ let distance_from_3 = abs_diff 3
 let abs_diff_curried_style = ( fun x y -> abs (x - y ) )
 let abs_diff_tuple_style (x,y) = abs (x - y)
 
+let rec fib n =
+  match n with
+  | 0 -> 1
+  | 1 -> 1
+  | _ -> fib (n - 1) + fib (n - 2)
+
+let rec find_first_stutter list =
+  match list with
+  | [] | [_] -> (* only zero or one elements, so no repeats *)
+     None
+  | x :: y :: tl ->
+     if x = y then Some x else find_first_stutter (y::tl)
+
 let () =
   printf "--- variables.ml ---\n";
   printf "Replacing , with - : %s -> %s\n" languages dashed_languages;
@@ -78,3 +91,11 @@ let () =
     ( abs_diff_curried_style (-3) 4 );
   printf "The abs difference between -3 and 4 tuple style: %d\n"
     ( abs_diff_tuple_style (-3, 4) );
+  printf "The value of fib(10) is %d\n" (fib 10);
+  let stut =
+    let stutter = find_first_stutter [1;2;3;3;4] in
+    match stutter with
+      | None -> "nothing to see here"
+      | Some x -> Int.to_string x
+  in
+  printf "The first stutter of 1,2,3,3,4 is %s\n" (stut);
