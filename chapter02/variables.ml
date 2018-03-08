@@ -33,6 +33,32 @@ let increments = [ (fun x -> x + 1); (fun x -> x + 2) ]
 (* invoke them through another anonymous function *)
 let successors_of_3 = List.map ~f:(fun g -> g 3) increments
 
+(* functions can be declared in 2 equivalent ways:
+    let plusone = (fun x -> x + 1)
+        -- or --
+    let plusone x = x + 1
+ *)
+
+(* multiarg functions *)
+let abs_diff x y = abs (x - y)
+
+(* equivalently:
+    let abs_diff = ( fun x -> ( fun y -> abs ( x - y ) ) )
+
+    i.e. abs_diff is a function of x which returns a function of y
+         which returns the absolute difference of x and y.
+
+    abs_diff here is a curried function (named after Haskell Curry) and
+    its type signature is:
+
+        val abs_diff : int -> int -> int
+
+     -- equivalently through right associativity: --
+
+        val abs_diff : int -> ( int -> int )
+ *)
+
+
 let () =
   printf "--- variables.ml ---\n";
   printf "Replacing , with - : %s -> %s\n" languages dashed_languages;
@@ -41,4 +67,5 @@ let () =
   printf "Uppercasing first element of list : %s\n"
     (upcase_first_entry "foo,bar,baz");
   printf "First 4 squares are : %s\n" (join_comma squares);
-  printf "The successors of 3 are : %s\n" (join_comma successors_of_3)
+  printf "The successors of 3 are : %s\n" (join_comma successors_of_3);
+  printf "The abs difference between -3 and 4 : %d\n" ( abs_diff (-3) 4 );
