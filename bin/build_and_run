@@ -36,6 +36,11 @@ BUILD_DEFAULT='./_build/default'
 header "Building $NAME"
 jbuilder clean
 jbuilder build $NAME.exe
+if [[ "$?" -ne "0" ]]; then
+    error "Failed to build $NAME"
+    exit 1
+fi
+
 rm -f $NAME
 ln -s $BUILD_DEFAULT/$NAME.exe $NAME
 
