@@ -24,6 +24,9 @@ NAME="$1"
 if [[ -z "$NAME" ]]; then
     error "pass in a name"
     exit 1
+elif [[ -f "$NAME" ]]; then
+    NAME=$(echo "$NAME" | sed -e 's/\.ml$//;')
+    header "Found $NAME.ml"
 elif [[ -f "$NAME.ml" ]]; then
     header "Found $NAME.ml"
 else
