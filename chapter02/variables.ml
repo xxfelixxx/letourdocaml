@@ -20,6 +20,19 @@ let upcase_first_entry line =
   | [] -> assert false (* String.split returns at least one element *)
   | first :: rest -> String.concat ~sep:"," (String.uppercase first :: rest)
 
+let join_comma ints =
+  String.concat ~sep:","
+       (List.map ~f:(fun x -> Int.to_string x) ints )
+
+(* anonymous functions are introduced with keyword 'fun'
+                           .--- anon ---.                 *)
+let squares = List.map ~f:(fun x -> x * x) [1;2;3;4]
+
+(* store 2 anonymous functions *)
+let increments = [ (fun x -> x + 1); (fun x -> x + 2) ]
+(* invoke them through another anonymous function *)
+let successors_of_3 = List.map ~f:(fun g -> g 3) increments
+
 let () =
   printf "--- variables.ml ---\n";
   printf "Replacing , with - : %s -> %s\n" languages dashed_languages;
@@ -27,3 +40,5 @@ let () =
     (area_of_ring 3. 4.);
   printf "Uppercasing first element of list : %s\n"
     (upcase_first_entry "foo,bar,baz");
+  printf "First 4 squares are : %s\n" (join_comma squares);
+  printf "The successors of 3 are : %s\n" (join_comma successors_of_3)
