@@ -87,6 +87,9 @@ let (+!) (x1,y1) (x2,y2) = ( x1 + x2, y1 + y2 )
 let join_comma_duple (x,y) =
   String.concat ~sep:"," (List.map ~f:(fun x -> Int.to_string x) [x;y])
 
+(* new fancy power-up operator...note that spaces are required around *** *)
+let ( *** ) x y = ( x ** y ) ** y
+
 (* test everything and print it all out *)
 let () =
   printf "--- variables.ml ---\n";
@@ -119,3 +122,4 @@ let () =
   let res = (+!) (1,2) (3,4) in
   printf "The vector sum of (1,2) and (3,4) is (%s)\n"
     (join_comma_duple res);
+  printf "The powerup of 2 and 3 is %F\n" (( *** ) 2. 3. );
