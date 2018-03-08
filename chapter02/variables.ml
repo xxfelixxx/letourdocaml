@@ -103,6 +103,9 @@ let some_or_default default = function
   | Some x -> x
   | None -> default
 
+(* labelled arguments *)
+let ratio ~num ~denom = float num /. float denom
+
 (* test everything and print it all out *)
 let () =
   printf "--- variables.ml ---\n";
@@ -147,4 +150,6 @@ let () =
   printf "Some_or_zero of ( None   ) is %d\n" (some_or_zero None);
 
   printf "Some_or_default 100 of [ Some 3; None; Some 4 ] is %s\n"
-    ( join_comma (List.map ~f:(some_or_default 100) [Some 3; None; Some 4]) )
+    ( join_comma (List.map ~f:(some_or_default 100) [Some 3; None; Some 4]) );
+
+  printf "The ratio or 3 and 4 is %F\n" (ratio ~num:3 ~denom:4);
