@@ -76,6 +76,12 @@ let rec find_first_stutter list =
   | x :: y :: tl ->
      if x = y then Some x else find_first_stutter (y::tl)
 
+(* mutually recursive functions *)
+let rec is_even x =
+  if x = 0 then true else is_odd (x - 1)
+and is_odd x =
+  if x = 0 then false else is_even (x - 1)
+
 let () =
   printf "--- variables.ml ---\n";
   printf "Replacing , with - : %s -> %s\n" languages dashed_languages;
@@ -99,3 +105,8 @@ let () =
       | Some x -> Int.to_string x
   in
   printf "The first stutter of 1,2,3,3,4 is %s\n" (stut);
+
+  printf "Is 7 even ? %s.\n" (Bool.to_string (is_even 7));
+  printf "Is 7 odd  ? %s.\n" (Bool.to_string (is_odd 7 ));
+  printf "Is 8 even ? %s.\n" (Bool.to_string (is_even 8));
+  printf "Is 8 odd  ? %s.\n" (Bool.to_string (is_odd 8 ));
