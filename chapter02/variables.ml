@@ -99,6 +99,10 @@ let some_or_zero = function
   | Some x -> x
   | None -> 0
 
+let some_or_default default = function
+  | Some x -> x
+  | None -> default
+
 (* test everything and print it all out *)
 let () =
   printf "--- variables.ml ---\n";
@@ -141,3 +145,6 @@ let () =
 
   printf "Some_or_zero of ( Some 4 ) is %d\n" (some_or_zero (Some 4));
   printf "Some_or_zero of ( None   ) is %d\n" (some_or_zero None);
+
+  printf "Some_or_default 100 of [ Some 3; None; Some 4 ] is %s\n"
+    ( join_comma (List.map ~f:(some_or_default 100) [Some 3; None; Some 4]) )
