@@ -58,6 +58,10 @@ let abs_diff x y = abs (x - y)
         val abs_diff : int -> ( int -> int )
  *)
 
+let distance_from_3 = abs_diff 3
+
+let abs_diff_curried_style = ( fun x y -> abs (x - y ) )
+let abs_diff_tuple_style (x,y) = abs (x - y)
 
 let () =
   printf "--- variables.ml ---\n";
@@ -69,3 +73,8 @@ let () =
   printf "First 4 squares are : %s\n" (join_comma squares);
   printf "The successors of 3 are : %s\n" (join_comma successors_of_3);
   printf "The abs difference between -3 and 4 : %d\n" ( abs_diff (-3) 4 );
+  printf "The abs difference from 3 of 4 : %d\n" ( distance_from_3 4 );
+  printf "The abs difference between -3 and 4 curried style: %d\n"
+    ( abs_diff_curried_style (-3) 4 );
+  printf "The abs difference between -3 and 4 tuple style: %d\n"
+    ( abs_diff_tuple_style (-3, 4) );
