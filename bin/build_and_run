@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+RED=$(    tput setaf 1)
+GREEN=$(  tput setaf 2)
+YELLOW=$( tput setaf 3)
+BLUE=$(   tput setaf 4)
+PURPLE=$( tput setaf 5)
+CYAN=$(   tput setaf 6)
+RESET=$(  tput sgr0   )
+
+ECHO='echo -e'
+
+header() {
+    NOTE="$*"
+    $ECHO "----$YELLOW $NOTE $RESET----"
+}
+
+error() {
+    NOTE="$*"
+    $ECHO "----$RED $NOTE $RESET----"
+}
+
+NAME="$1"
+if [[ -z "$NAME" ]]; then
+    error "pass in a name"
+    exit 1
+elif [[ -f "$NAME.ml" ]]; then
+    header "Found $NAME.ml"
+else
+    error "Could not find $NAME.ml !"
+    exit 1
+fi
+BUILD_DEFAULT='./_build/default'
+# Build and run
+
+header "Building $NAME"
+jbuilder clean
+jbuilder build $NAME.exe
+rm -f $NAME
+ln -s $BUILD_DEFAULT/$NAME.exe $NAME
+
+header "Running $NAME"
+exec ./$NAME
