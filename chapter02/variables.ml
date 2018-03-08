@@ -82,6 +82,12 @@ let rec is_even x =
 and is_odd x =
   if x = 0 then false else is_even (x - 1)
 
+(* new fancy 2-tuple adder *)
+let (+!) (x1,y1) (x2,y2) = ( x1 + x2, y1 + y2 )
+let join_comma_duple (x,y) =
+  String.concat ~sep:"," (List.map ~f:(fun x -> Int.to_string x) [x;y])
+
+(* test everything and print it all out *)
 let () =
   printf "--- variables.ml ---\n";
   printf "Replacing , with - : %s -> %s\n" languages dashed_languages;
@@ -110,3 +116,6 @@ let () =
   printf "Is 7 odd  ? %s.\n" (Bool.to_string (is_odd 7 ));
   printf "Is 8 even ? %s.\n" (Bool.to_string (is_even 8));
   printf "Is 8 odd  ? %s.\n" (Bool.to_string (is_odd 8 ));
+  let res = (+!) (1,2) (3,4) in
+  printf "The vector sum of (1,2) and (3,4) is (%s)\n"
+    (join_comma_duple res);
