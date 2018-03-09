@@ -140,6 +140,12 @@ let x_squared_plus_y_squared ~x ~y = x *. x +. y *. y
 let join_comma_duple_float (x,y) =
   String.concat ~sep:"," (List.map ~f:(fun x -> Float.to_string x) [x;y])
                                    
+(* optional arguments and partial application *)
+let colon_concat = concat ~sep:":"
+let prepend_pound = concat "# "
+let concat_opt x ?(sep="|") y = x ^ sep ^ y
+let prepend_pound_opt = concat_opt "# "
+
 (* test everything and print it all out *)
 let () =
   printf "--- variables.ml ---\n";
@@ -225,3 +231,10 @@ let () =
   printf "calculating the numerical derivative at (1,1) with delta=0.01\n";
   printf "numeric_deriv 0.01 1 1 f -> (%s)\n" ( join_comma_duple_float
     ( numeric_deriv ~delta:0.01 ~x:1. ~y:1. ~f:x_squared_plus_y_squared ) );
+
+  printf "colon_concat \"foo\" \"bar\" -> %s\n"
+    ( colon_concat "foo" "bar" );
+  printf "prepend_pound \"a bash comment\" -> %s\n"
+    ( prepend_pound "a bash comment" );
+  printf "prepend_pound_opt \"a bash comment\" ~sep:\"***\" -> %s\n"
+    ( prepend_pound_opt "a bash comment" ~sep:"***" );
