@@ -92,7 +92,7 @@ let ( *** ) x y = ( x ** y ) ** y
 
 (* pipe operator of a value and a function is the result of applying
    the function to that value *)
-let (|>) x f = f x
+let (|>) x f = f x                
 
 (* declaring functions with keyword 'function' have automatic matching *)
 let some_or_zero = function
@@ -102,10 +102,44 @@ let some_or_zero = function
 let some_or_default default = function
   | Some x -> x
   | None -> default
-
+          
 (* labelled arguments *)
-let ratio ~num ~denom = float num /. float denom
+let ratio ~num ~denom = float num /. float denom          
 
+(* higher-order functions and labels *)
+let apply_to_tuple f (first,second) = f ~first ~second
+
+(* order matters for applying higher-order functions with labels *)
+let apply_to_tuple_2 f (first,second) = f ~second ~first
+
+let divide ~first ~second = first / second
+
+(* optional arguments *)
+let concat ?sep x y =
+  let sep = match sep with None -> "|" | Some x -> x in
+  x ^ sep ^ y
+
+(* optional arguments more compactly *)
+let concat2 ?(sep="|") x y = x ^ sep ^ y
+
+(* wrapper function passes along the sep value *)
+let uppercase_concat ?(sep="|") a b = concat ~sep (String.uppercase a) b
+
+(* wrapper lets concat decide the default sep value *)
+let uppercase_concat2 ?sep a b = concat ?sep (String.uppercase a) b
+
+(* inference of labeled and optional arguments *)
+let numeric_deriv ~delta ~x ~y ~(f: x:float -> y:float -> float) =
+  let x' = x +. delta in
+  let y' = y +. delta in
+  let base = f ~x ~y in
+  let dx = (f ~x:x' ~y -. base) /. delta in
+  let dy = (f ~x ~y:y' -. base) /. delta in
+  (dx,dy)
+let x_squared_plus_y_squared ~x ~y = x *. x +. y *. y
+let join_comma_duple_float (x,y) =
+  String.concat ~sep:"," (List.map ~f:(fun x -> Float.to_string x) [x;y])
+                                   
 (* test everything and print it all out *)
 let () =
   printf "--- variables.ml ---\n";
@@ -153,3 +187,41 @@ let () =
     ( join_comma (List.map ~f:(some_or_default 100) [Some 3; None; Some 4]) );
 
   printf "The ratio or 3 and 4 is %F\n" (ratio ~num:3 ~denom:4);
+
+  printf "Applying apply_to_type to divide should work\n";
+  printf "apply_to_type divide (3,4) -> %d\n" ( apply_to_tuple divide (3,4) );
+  printf "Applying apply_to_type_2 to divide should NOT work (order matters)\n";
+  printf "apply_to_type_2 divide (3,4) -> Error\n";
+
+  printf "With optional argument sep: concat ~sep:\":\" \"foo\" \"bar\" -> %s\n"
+    ( concat ~sep:":" "foo" "bar" );
+  printf "Without optional argument sep: concat \"foo\" \"bar\" -> %s\n"
+    ( concat "foo" "bar" );
+
+  printf "With optional argument sep: concat2 ~sep:\":\" \"foo\" \"bar\" -> %s\n"
+    ( concat2 ~sep:":" "foo" "bar" );
+  printf "Without optional argument sep: concat2 \"foo\" \"bar\" -> %s\n"
+    ( concat2 "foo" "bar" );
+    
+  printf "Optional arguments are implicitly passed in as ( None ) or ( Some x )\n";
+  printf "Optional arguments can also be passed in explicitly\n";
+
+  printf "concat ~sep:\":\" \"foo\" \"bar\" -> %s\n"
+    ( concat ~sep:":" "foo" "bar");
+  printf "concat ?sep:None \"foo\" \"bar\" -> %s\n"
+    ( concat ?sep:None "foo" "bar");
+  printf "concat ?sep:(Some \":\") \"foo\" \"bar\" -> %s\n"
+    ( concat ?sep:(Some ":") "foo" "bar");
+  printf "uppercase_concat \"foo\" \"bar\" -> %s\n"
+    ( uppercase_concat "foo" "bar" );
+  printf "uppercase_concat ~sep:\":\" \"foo\" \"bar\" -> %s\n"
+    ( uppercase_concat ~sep:":" "foo" "bar" );
+  printf "uppercase_concat2 \"foo\" \"bar\" -> %s\n"
+    ( uppercase_concat2 "foo" "bar" );
+  printf "uppercase_concat2 ~sep:\":\" \"foo\" \"bar\" -> %s\n"
+    ( uppercase_concat2 ~sep:":" "foo" "bar" );    
+
+  printf "let f = x^2 + y^2\n";
+  printf "calculating the numerical derivative at (1,1) with delta=0.01\n";
+  printf "numeric_deriv 0.01 1 1 f -> (%s)\n" ( join_comma_duple_float
+    ( numeric_deriv ~delta:0.01 ~x:1. ~y:1. ~f:x_squared_plus_y_squared ) );
