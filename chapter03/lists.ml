@@ -80,7 +80,117 @@ let render_table header rows =
 
 (* more useful List.* functions *)
 let reduced_sum = List.reduce ~f:(+) [1;2;3;4;5]
-  
+
+let is_ocaml_source s =
+  match String.rsplit2 s ~on:'.' with
+  | Some (_,("ml"|"mli")) -> true
+  | _ -> false
+
+let (ml_files, other_files) =
+  List.partition_tf (Sys.ls_dir ".") ~f:is_ocaml_source
+
+(* ^/ is an infix operator for adding a new element to a string *)
+let rec ls_rec s =
+  if Sys.is_file_exn ~follow_symlinks:true s
+  then [s]
+  else
+    Sys.ls_dir s
+    |> List.map ~f:(fun sub -> ls_rec ( s ^/ sub))
+    |> List.concat
+
+let rec ls_rec2 s =
+  if Sys.is_file_exn ~follow_symlinks:true s
+  then [s]
+  else
+    Sys.ls_dir s
+    |> List.concat_map ~f:(fun sub -> ls_rec (s ^/ sub))
+
+(* tail recursion *)
+
+let make_list n = List.init n ~f:(fun x -> x)
+
+(* this causes a stack overflow on large list sizes! *)
+(* this will happily allocate 1_000_000 stack frames... *)
+let rec length = function
+  | [] -> 0
+  | _ :: tl -> 1 + length tl
+
+let rec length_plus_n l n =
+  match l with
+  | [] -> n
+  | _ :: tl -> length_plus_n tl (n + 1)
+
+(* tail call optimization re-uses the same stack frame *)
+let length2 l = length_plus_n l 0
+
+let rec destutter list =
+  match list with
+  | [] -> []
+  | [hd] -> [hd]
+  | hd :: hd' :: tl ->
+     if hd = hd' then destutter (hd' :: tl)
+     else hd :: destutter (hd' :: tl)
+
+(* improve destutter by removing match and eliminating allocation of [hd] *)
+let rec destutter2 = function
+  | []  as l -> l
+  | [_] as l -> l
+  | hd :: (hd' :: _ as tl) ->
+     if hd = hd' then destutter2 tl
+     else hd :: destutter2 tl
+
+(* Combine first two cases using an Or-pattern *)
+let rec destutter3 = function
+  | [] | [_] as l -> l
+  | hd :: (hd' :: _ as tl) ->
+     if hd = hd' then destutter3 tl
+     else hd :: destutter3 tl
+
+(* Add a when clause to simplify slightly *)
+let rec destutter4 = function
+  | [] | [_] as l -> l
+  | hd :: (hd' :: _ as tl) when hd = hd' -> destutter4 tl
+  | hd :: tl -> hd :: destutter4 tl
+
+(*
+ * count_some will throw a warning:
+ *     this pattern-matching is not exhaustive.
+ *     Here is an example of a case that is not matched:
+ *     _::_
+ *     (However, some guarded clause may match this value.)
+ *)
+
+let rec count_some list =
+  match list with
+  | [] -> 0
+  | x :: tl when Option.is_none x -> count_some tl
+  | x :: tl when Option.is_some x -> 1 + count_some tl
+
+(* remove warning with a redundent match case *)
+let rec count_some2 list =
+  match list with
+  | [] -> 0
+  | x :: tl when Option.is_none x -> count_some2 tl
+  | x :: tl when Option.is_some x -> 1 + count_some2 tl
+  | x :: tl -> -1 (* unreachable *)
+
+(* better approach *)
+let rec count_some3 list =
+  match list with
+  | [] -> 0
+  | x :: tl when Option.is_none x -> count_some3 tl
+  | _ :: tl -> 1 + count_some3 tl
+
+(* a clearer approach *)
+let rec count_some4 list =
+  match list with
+  | [] -> 0
+  | None :: tl -> count_some4 tl
+  | Some _ :: tl -> 1 + count_some4 tl
+
+(* better just to use List.count for this! *)
+let rec count_some5 list = List.count ~f:Option.is_some list
+
 let () =
   printf "semicolons can be used to defined lists\n";
   printf "[1;2;3]-> %s\n" ( join_int_list one_two_three_v1 );
@@ -132,17 +242,62 @@ let () =
              |> List.dedup_and_sort in
   printf "Some file extensions: %s\n" (String.concat ~sep:"|" exts);
 
-  (* (\* plus_one_match should be much faster than plus_one_if *\)
-   * [
-   *   Bench.Test.create ~name:"plus_one_match" (fun () -> ignore (plus_one_match 10));
-   *   Bench.Test.create ~name:"plus_one_if"    (fun () -> ignore (plus_one_if    10))
-   * ] |> Bench.bench;
-   *
-   * (\* sum should be much faster than sum_if *\)
-   * let numbers = List.range 0 1000 in
-   * [
-   *   Bench.Test.create ~name:"sum_if" (fun () -> ignore (sum_if numbers));
-   *   Bench.Test.create ~name:"sum"    (fun () -> ignore (sum   numbers));
-   * ] |> Bench.bench; *)
+  printf "Some ml files: '%s'\n" (String.concat ~sep:"," ml_files);
+  printf "Some other files: '%s'\n" (String.concat ~sep:"," other_files);
+
+  printf "Combining lists:\n";
+  printf "List.append [1;2;3] [4;5;6] -> %s\n"
+    ( join_int_list ( List.append [1;2;3] [4;5;6] ));
+
+  printf "[1;2;3] @ [4;5;6] -> %s\n"
+    ( join_int_list ( [1;2;3] @ [4;5;6] ));
+
+  printf "List.concat [[1;2];[3;4;5];[6;7];[]] -> %s\n"
+    ( join_int_list ( List.concat [[1;2];[3;4;5];[6;7];[]] ));
+
+  let dir = "/usr/local/lib/ocaml/caml" in
+  (
+    printf "Looking in %s\n" dir;
+    printf "ls_rec  ---> \n%s\n" ( String.concat ~sep:"\n" (ls_rec  dir) );
+    printf "ls_rec2 ---> \n%s\n" ( String.concat ~sep:"\n" (ls_rec2 dir) );
+  );
+
+  printf "Length of [1;2;3] is %d\n" ( length [1;2;3] );
+
+  printf "Length of [1;...;1_000_000] is %d\n"
+    ( length2 (make_list 1_000_000) );
+
+  printf "destutter  [1;2;3;4;4;3;2;1] is %s\n"
+    ( join_int_list ( destutter [1;2;3;4;4;3;2;1] ) );
+  printf "destutter2 [1;2;3;4;4;3;2;1] is %s\n"
+    ( join_int_list ( destutter2 [1;2;3;4;4;3;2;1] ) );
+  printf "destutter3 [1;2;3;4;4;3;2;1] is %s\n"
+    ( join_int_list ( destutter3 [1;2;3;4;4;3;2;1] ) );
+  printf "destutter4 [1;2;3;4;4;3;2;1] is %s\n"
+    ( join_int_list ( destutter4 [1;2;3;4;4;3;2;1] ) );
+
+  printf "count_some  [ None; Some 3; Some 4 ] -> %d\n"
+    ( count_some  [ None; Some 3; Some 4 ] );
+  printf "count_some2 [ None; Some 3; Some 4 ] -> %d\n"
+    ( count_some2 [ None; Some 3; Some 4 ] );
+  printf "count_some3 [ None; Some 3; Some 4 ] -> %d\n"
+    ( count_some3 [ None; Some 3; Some 4 ] );
+  printf "count_some4 [ None; Some 3; Some 4 ] -> %d\n"
+    ( count_some4 [ None; Some 3; Some 4 ] );
+  printf "count_some5 [ None; Some 3; Some 4 ] -> %d\n"
+    ( count_some5 [ None; Some 3; Some 4 ] );
+
+  (* plus_one_match should be much faster than plus_one_if *)
+  [
+    Bench.Test.create ~name:"plus_one_match" (fun () -> ignore (plus_one_match 10));
+    Bench.Test.create ~name:"plus_one_if"    (fun () -> ignore (plus_one_if    10))
+  ] |> Bench.bench;
+
+  (* sum should be much faster than sum_if *)
+  let numbers = List.range 0 1000 in
+  [
+    Bench.Test.create ~name:"sum_if" (fun () -> ignore (sum_if numbers));
+    Bench.Test.create ~name:"sum"    (fun () -> ignore (sum   numbers));
+  ] |> Bench.bench;
 
   
